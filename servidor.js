@@ -79,12 +79,14 @@ app.post("/extrato", async (req, res) => {
       dados: extratoResponse.data,
     });
   } catch (error) {
-    res.status(500).json({
-      ok: false,
-      mensagem: "Erro ao consultar extrato no BB",
-      erro: error.response ? error.response.data : error.message,
-    });
-  }
+  console.error("ERRO DETALHADO:", error.response ? error.response.data : error.message);
+
+  res.status(500).json({
+    ok: false,
+    mensagem: "Erro ao consultar extrato no BB",
+    erro: error.response ? error.response.data : error.message,
+  });
+}
 });
 
 app.listen(PORT, () => {
