@@ -54,39 +54,70 @@ app.post("/extrato", async (req, res) => {
 
     const url = `https://api-extratos.bb.com.br/extratos/v1/conta-corrente/agencia/${agencia}/conta/${conta}`;
 
-    const params = {
-      "gw-dev-app-key": APP_KEY,
-      numeroPaginaSolicitacao: 1,
-      quantidadeRegistroPaginaSolicitacao: 200,
-    };
+    let paginaAtual = 1;
+    let todasPaginas = [];
+    let numeroPaginaProximo = 0;
+    let quantidadeTotalPagina = 1;
 
-    if (dataInicioSolicitacao && dataFimSolicitacao) {
-      params.dataInicioSolicitacao = dataInicioSolicitacao;
-      params.dataFimSolicitacao = dataFimSolicitacao;
-    }
+    do {
+      const params = {
+        "gw-dev-app-key": APP_KEY,
+        numeroPaginaSolicitacao: paginaAtual,
+        quantidadeRegistroPaginaSolicitacao: 200,
+      };
 
-    const extratoResponse = await axios.get(url, {
-      httpsAgent: agent,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      params,
-      timeout: 30000,
-    });
+      if (dataInicioSolicitacao && dataFimSolicitacao) {
+        params.dataInicioSolicitacao = dataInicioSolicitacao;
+        params.dataFimSolicitacao = dataFimSolicitacao;
+      }
+
+      const extratoResponse = await axios.get(url, {
+        httpsAgent: agent,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params,
+        timeout: 30000,
+      });
+
+      const dadosPagina = extratoResponse.data;
+      const lista = Array.isArray(dadosPagina.listaLancamento)
+        ? dadosPagina.listaLancamento
+        : [];
+
+      todasPaginas.push(...lista);
+
+      numeroPaginaProximo = dadosPagina.numeroPaginaProximo || 0;
+      quantidadeTotalPagina = dadosPagina.quantidadeTotalPagina || paginaAtual;
+
+      if (numeroPaginaProximo > paginaAtual && numeroPaginaProximo <= quantidadeTotalPagina) {
+        paginaAtual = numeroPaginaProximo;
+      } else {
+        break;
+      }
+    } while (paginaAtual <= quantidadeTotalPagina);
 
     res.json({
       ok: true,
-      dados: extratoResponse.data,
+      dados: {
+        numeroPaginaAtual: 1,
+        quantidadeRegistroPaginaAtual: todasPaginas.length,
+        numeroPaginaAnterior: 0,
+        numeroPaginaProximo: 0,
+        quantidadeTotalPagina,
+        quantidadeTotalRegistro: todasPaginas.length,
+        listaLancamento: todasPaginas,
+      },
     });
   } catch (error) {
-  console.error("ERRO DETALHADO:", error.response ? error.response.data : error.message);
+    console.error("ERRO DETALHADO:", error.response ? error.response.data : error.message);
 
-  res.status(500).json({
-    ok: false,
-    mensagem: "Erro ao consultar extrato no BB",
-    erro: error.response ? error.response.data : error.message,
-  });
-}
+    res.status(500).json({
+      ok: false,
+      mensagem: "Erro ao consultar extrato no BB",
+      erro: error.response ? error.response.data : error.message,
+    });
+  }
 });
 
 app.listen(PORT, () => {
