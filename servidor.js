@@ -53,7 +53,7 @@ app.post("/extrato", async (req, res) => {
 
     const accessToken = tokenResponse.data.access_token;
 
-    const url = `https://api-extratos.bb.com.br/extratos/v1/conta-corrente/agencia/${agencia}/conta/${conta}`;
+    const url = `https://extratos.mtls.api.bb.com.br/v2/conta-corrente/agencia/${agencia}/conta/${conta}`;
 
     let paginaAtual = 1;
     let todasPaginas = [];
