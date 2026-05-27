@@ -37,7 +37,6 @@ app.post("/extrato", async (req, res) => {
       "https://oauth.bb.com.br/oauth/token",
       new URLSearchParams({
         grant_type: "client_credentials",
-        scope: "extrato-info",
         scope: "extrato.read",
       }).toString(),
       {
