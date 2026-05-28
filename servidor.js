@@ -86,7 +86,7 @@ app.post("/extrato", async (req, res) => {
         : [];
 
       const reais = lista.filter(l => {
-        if (!["1","2","3"].includes(String(l.indicadorTipoLancamento))) return false;
+        if (!["1","3"].includes(String(l.indicadorTipoLancamento))) return false;
         const desc = String(l.textoDescricaoSubHistorico || "").toUpperCase();
         if (desc.includes("SALDO") || desc.includes("S A L D O")) return false;
         return true;
