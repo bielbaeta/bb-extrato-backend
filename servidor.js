@@ -85,7 +85,8 @@ app.post("/extrato", async (req, res) => {
         ? dadosPagina.listaLancamento
         : [];
 
-      todasPaginas.push(...lista);
+      const reais = lista.filter(l => ["1","2","3"].includes(String(l.indicadorTipoLancamento)));
+      todasPaginas.push(...reais);
 
       numeroPaginaProximo = dadosPagina.numeroPaginaProximo || 0;
       quantidadeTotalPagina = dadosPagina.quantidadeTotalPagina || paginaAtual;
