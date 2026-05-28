@@ -85,7 +85,12 @@ app.post("/extrato", async (req, res) => {
         ? dadosPagina.listaLancamento
         : [];
 
-      const reais = lista.filter(l => ["1","2","3"].includes(String(l.indicadorTipoLancamento)));
+      const reais = lista.filter(l => {
+        if (!["1","2","3"].includes(String(l.indicadorTipoLancamento))) return false;
+        const desc = String(l.textoDescricaoSubHistorico || "").toUpperCase();
+        if (desc.includes("SALDO") || desc.includes("S A L D O")) return false;
+        return true;
+      });
       todasPaginas.push(...reais);
 
       numeroPaginaProximo = dadosPagina.numeroPaginaProximo || 0;
