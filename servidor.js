@@ -56,6 +56,7 @@ app.post("/extrato", async (req, res) => {
 
     let paginaAtual = 1;
     let todasPaginas = [];
+    let todosSaldos = [];
     let numeroPaginaProximo = 0;
     let quantidadeTotalPagina = 1;
 
@@ -93,6 +94,22 @@ app.post("/extrato", async (req, res) => {
       });
       todasPaginas.push(...reais);
 
+      // Registros de SALDO (S A L D O, Saldo do dia, Saldo Disponivel, tipos
+      // SA/SD/etc): saem de listaLancamento (filtro acima) mas vao em um campo
+      // proprio para o cron do Hub atualizar o saldo das contas a cada rodada.
+      try {
+        const saldos = lista.filter(l => {
+          const tipo = String(l.indicadorTipoLancamento || "");
+          const desc = String(l.textoDescricaoSubHistorico || l.textoDescricaoHistorico || "").toUpperCase();
+          const ehSaldoDesc = desc.includes("SALDO") || desc.includes("S A L D O");
+          const ehTipoSaldo = tipo !== "" && !["1", "2", "3"].includes(tipo);
+          return ehSaldoDesc || ehTipoSaldo;
+        });
+        todosSaldos.push(...saldos);
+      } catch (e) {
+        console.error("Falha ao coletar saldos (nao critico):", e.message);
+      }
+
       numeroPaginaProximo = dadosPagina.numeroPaginaProximo || 0;
       quantidadeTotalPagina = dadosPagina.quantidadeTotalPagina || paginaAtual;
 
@@ -113,6 +130,7 @@ app.post("/extrato", async (req, res) => {
         quantidadeTotalPagina,
         quantidadeTotalRegistro: todasPaginas.length,
         listaLancamento: todasPaginas,
+        listaSaldo: todosSaldos,
       },
     });
   } catch (error) {
